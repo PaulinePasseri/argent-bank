@@ -12,14 +12,12 @@ import './main.css'
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Router>
-      <div className='content'>
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/user" element={<User />} />
         </Routes>
-      </div>
       <Footer />
     </Router>
   </React.StrictMode>,
