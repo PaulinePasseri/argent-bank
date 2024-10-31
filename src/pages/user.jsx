@@ -5,8 +5,8 @@ import Account from "../components/Account/account";
 
 export default function User() {
   const dispatch = useDispatch();
-  const { firstName } = useSelector((state) => state.user.firstName);
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const firstName = useSelector((state) => state.user.firstName);
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -16,7 +16,7 @@ export default function User() {
   return (
     <main className="main bg-dark">
       <div className="header">
-        <h1>Welcome back<br />{firstName}!</h1>
+        <h1>Welcome back<br />{firstName || 'User'}!</h1>
         <button className="edit-button">Edit Name</button>
       </div>
       <h2 className="sr-only">Accounts</h2>
