@@ -1,18 +1,41 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchUserProfile } from '../features/userSlice';
+import { setUserProfile, setError } from '../features/userSlice';
+import { setAuthToken, getUserProfile } from '../services/api';
 import Account from "../components/Account/account";
+import { useNavigate } from 'react-router-dom';
 
 export default function User() {
   const dispatch = useDispatch();
-  const firstName = useSelector((state) => state.user.firstName);
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const navigate = useNavigate();
+  const { firstName, error } = useSelector((state) => state.user);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      dispatch(fetchUserProfile());
-    }
-  }, [dispatch, isAuthenticated]);
+    const fetchProfile = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        setAuthToken(token);
+        try {
+          const userData = await getUserProfile();
+          dispatch(setUserProfile(userData));
+        } catch (err) {
+          console.error('Error fetching user profile:', err);
+          dispatch(setError(err.response?.data?.message || 'An error occurred while fetching user profile'));
+          navigate('/signin');
+        }
+      } else {
+        navigate('/signin');
+      }
+      setLoading(false);
+    };
+
+    fetchProfile();
+  }, [dispatch, navigate]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
   return (
     <main className="main bg-dark">
       <div className="header">

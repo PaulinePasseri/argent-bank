@@ -1,28 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { logoutUser } from '../../features/authSlice';
+import { resetUser } from '../../features/userSlice';
+import { setAuthToken } from '../../services/api';
 import HomeLogo from '../../assets/argentBankLogo.png';
 import './header.css';
 
 export default function Header() {
-  const { isAuthenticated } = useSelector((state) => state.auth);
-  const { firstName } = useSelector((state) => state.user) || {};
+  const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeLink, setActiveLink] = useState(location.pathname);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
   useEffect(() => {
     setActiveLink(location.pathname);
+    setIsAuthenticated(!!localStorage.getItem('token'));
   }, [location.pathname]);
 
   const handleLogout = (e) => {
     e.preventDefault();  
-    dispatch(logoutUser());
+    localStorage.removeItem('token');
+    setAuthToken(null);
+    dispatch(resetUser());
+    setIsAuthenticated(false);
     navigate('/');
   };
-  console.log(activeLink)
+
   return (
     <nav className="main-nav">
       <Link className="main-nav-logo" to="/">
@@ -35,7 +40,7 @@ export default function Header() {
           <>
             <Link className="main-nav-item" to="/user">
               <i className="fa fa-user-circle"></i>
-              {firstName}
+              {user.firstName}
             </Link>
             <Link className="main-nav-item" to="/" onClick={handleLogout}>
               <i className="fa fa-sign-out"></i>
