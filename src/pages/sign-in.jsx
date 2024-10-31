@@ -1,23 +1,25 @@
-import '../main.css'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginUser } from '../features/authSlice'
+import { loginUser } from '../features/authSlice';
 import { useNavigate } from 'react-router-dom';
 
 export default function SignIn() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const { isAuthenticated, error } = useSelector((state) => state.auth);
-    
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        dispatch(loginUser(email, password));
-      };
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { isAuthenticated, error } = useSelector((state) => state.auth);
+  
+  useEffect(() => {
     if (isAuthenticated) {
-        navigate('/user');
+      navigate('/user');
     }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch(loginUser({ email, password }));
+  };
     return (
         <main className="main bg-dark">
             <section className="sign-in-content">
