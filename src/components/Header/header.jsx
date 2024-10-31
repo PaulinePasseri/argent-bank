@@ -27,6 +27,7 @@ export default function Header() {
     setIsAuthenticated(false);
     navigate('/');
   };
+  console.log(activeLink)
 
   return (
     <nav className="main-nav">

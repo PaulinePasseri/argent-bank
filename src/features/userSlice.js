@@ -15,6 +15,10 @@ const userSlice = createSlice({
       state.email = action.payload.email;
       state.error = null;
     },
+    setName: (state, action) => {
+        state.firstName = action.payload.firstName;
+        state.lastName = action.payload.lastName;
+    },
     setError: (state, action) => {
       state.error = action.payload;
     },
