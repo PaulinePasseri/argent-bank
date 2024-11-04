@@ -108,7 +108,7 @@ padding: 10px;
 min-width: 80px;
 }
 
-input {
+.editName {
   border-radius: 8px;
   border: 0px;
   padding: 5px 10px;

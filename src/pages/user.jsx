@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setUserProfile, setError } from '../features/userSlice';
+import { setUserProfile, setError, setName } from '../features/userSlice';
 import { setAuthToken, getUserProfile, updateUserProfile } from '../services/api';
 import Account from "../components/Account/account";
 import { useNavigate } from 'react-router-dom';
@@ -8,10 +8,11 @@ import { useNavigate } from 'react-router-dom';
 export default function User() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { firstName, error } = useSelector((state) => state.user);
+  const { firstName, lastName, error } = useSelector((state) => state.user);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [newFirstName, setNewFirstName] = useState(firstName);
+  const [newFirstName, setNewFirstName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -23,8 +24,8 @@ export default function User() {
           dispatch(setUserProfile(userData));
           setNewFirstName(userData.firstName);
         } catch (err) {
-          console.error('Error fetching user profile:', err);
-          dispatch(setError(err.response?.data?.message || 'An error occurred while fetching user profile'));
+          console.error('Erreur lors de la récupération du profil utilisateur :', err);
+          dispatch(setError(err.response?.data?.message || 'Une erreur est survenue lors de la récupération du profil utilisateur'));
           navigate('/signin');
         }
       } else {
@@ -32,7 +33,7 @@ export default function User() {
       }
       setLoading(false);
     };
-
+  
     fetchProfile();
   }, [dispatch, navigate]);
 
@@ -42,19 +43,30 @@ export default function User() {
 
   const handleCancelClick = () => {
     setIsEditing(false);
-    setNewFirstName(firstName);
+    setNewFirstName(firstName); 
   };
 
   const handleSaveClick = async () => {
+    if (newFirstName.trim() === '') {
+      dispatch(setError('First name cannot be empty.'));
+      return;
+    }
+    setIsSaving(true);
     try {
-      await updateUserProfile({ firstName: newFirstName });
-      dispatch(setUserProfile({ firstName: newFirstName }));
+      const updatedUserData = await updateUserProfile({ firstName: newFirstName });
+      dispatch(setName({ firstName: newFirstName, lastName: updatedUserData.lastName }));
       setIsEditing(false);
     } catch (err) {
       console.error('Error updating user profile:', err);
-      dispatch(setError('Failed to update profile'));
+      dispatch(setError(err.response?.data?.message || 'Failed to update profile.'));
+    } finally {
+      setIsSaving(false);
     }
   };
+
+  useEffect(() => {
+    console.log('Current user profile:', { firstName, lastName });
+  }, [firstName, lastName]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -65,15 +77,17 @@ export default function User() {
         {isEditing ? (
           <div>
             <h1>Edit user info</h1>
-            <label>First name : </label>
-            <input
+            <label>First name: </label>
+            <input className="editName"
               type="text"
               value={newFirstName}
               onChange={(e) => setNewFirstName(e.target.value)}
               placeholder="Enter new name"
             />
             <div className="buttons">
-              <button onClick={handleSaveClick} className="edit-button">Save</button>
+              <button onClick={handleSaveClick} className="edit-button" disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save'}
+              </button>
               <button onClick={handleCancelClick} className="edit-button">Cancel</button>
             </div>
           </div>
