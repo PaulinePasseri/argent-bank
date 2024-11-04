@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setUserProfile, setError } from '../features/userSlice';
-import { setAuthToken, getUserProfile } from '../services/api';
+import { setAuthToken, getUserProfile, updateUserProfile } from '../services/api';
 import Account from "../components/Account/account";
 import { useNavigate } from 'react-router-dom';
 
@@ -10,6 +10,8 @@ export default function User() {
   const navigate = useNavigate();
   const { firstName, error } = useSelector((state) => state.user);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [newFirstName, setNewFirstName] = useState(firstName);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -19,6 +21,7 @@ export default function User() {
         try {
           const userData = await getUserProfile();
           dispatch(setUserProfile(userData));
+          setNewFirstName(userData.firstName);
         } catch (err) {
           console.error('Error fetching user profile:', err);
           dispatch(setError(err.response?.data?.message || 'An error occurred while fetching user profile'));
@@ -33,14 +36,53 @@ export default function User() {
     fetchProfile();
   }, [dispatch, navigate]);
 
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelClick = () => {
+    setIsEditing(false);
+    setNewFirstName(firstName);
+  };
+
+  const handleSaveClick = async () => {
+    try {
+      await updateUserProfile({ firstName: newFirstName });
+      dispatch(setUserProfile({ firstName: newFirstName }));
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Error updating user profile:', err);
+      dispatch(setError('Failed to update profile'));
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <main className="main bg-dark">
       <div className="header">
-        <h1>Welcome back<br />{firstName || 'User'}!</h1>
-        <button className="edit-button">Edit Name</button>
+        {isEditing ? (
+          <div>
+            <h1>Edit user info</h1>
+            <label>First name : </label>
+            <input
+              type="text"
+              value={newFirstName}
+              onChange={(e) => setNewFirstName(e.target.value)}
+              placeholder="Enter new name"
+            />
+            <div className="buttons">
+              <button onClick={handleSaveClick} className="edit-button">Save</button>
+              <button onClick={handleCancelClick} className="edit-button">Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h1>Welcome back<br />{firstName || 'User'}!</h1>
+            <button onClick={handleEditClick} className="edit-button">Edit Name</button>
+          </>
+        )}
       </div>
       <h2 className="sr-only">Accounts</h2>
       <Account 

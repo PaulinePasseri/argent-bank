@@ -22,4 +22,9 @@ export const getUserProfile = async () => {
   return response.data.body;
 };
 
+export const updateUserProfile = async (userData) => {
+  const response = await api.put('/user/profile', userData);
+  return response.data.body;
+};
+
 export default api;
