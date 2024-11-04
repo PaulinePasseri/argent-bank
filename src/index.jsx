@@ -10,17 +10,16 @@ import User from './pages/user'
 import SignIn from './pages/sign-in'
 import './main.css'
 
-
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>
       <Router>
-          <Header />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/user" element={<User />} />
-          </Routes>
+        <Header />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/user" element={<User />} />
+        </Routes>
         <Footer />
       </Router>
     </Provider>

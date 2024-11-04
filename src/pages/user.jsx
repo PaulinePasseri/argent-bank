@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setUserProfile, setError, setName } from '../features/userSlice';
+import { setUserProfile, setError, setUserName } from '../features/userSlice'; 
 import { setAuthToken, getUserProfile, updateUserProfile } from '../services/api';
 import Account from "../components/Account/account";
 import { useNavigate } from 'react-router-dom';
@@ -8,10 +8,10 @@ import { useNavigate } from 'react-router-dom';
 export default function User() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { firstName, lastName, error } = useSelector((state) => state.user);
+  const { firstName, lastName, userName, error } = useSelector((state) => state.user);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [newFirstName, setNewFirstName] = useState('');
+  const [newUserName, setNewUserName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -22,10 +22,10 @@ export default function User() {
         try {
           const userData = await getUserProfile();
           dispatch(setUserProfile(userData));
-          setNewFirstName(userData.firstName);
+          setNewUserName(userData.userName || ''); 
         } catch (err) {
-          console.error('Erreur lors de la récupération du profil utilisateur :', err);
-          dispatch(setError(err.response?.data?.message || 'Une erreur est survenue lors de la récupération du profil utilisateur'));
+          console.error('Error fetching user profile:', err);
+          dispatch(setError(err.response?.data?.message || 'An error occurred while fetching the user profile'));
           navigate('/signin');
         }
       } else {
@@ -37,24 +37,26 @@ export default function User() {
     fetchProfile();
   }, [dispatch, navigate]);
 
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
+  useEffect(() => {
+    setNewUserName(userName || ''); 
+  }, [userName]);
+
+  const handleEditClick = () => setIsEditing(true);
 
   const handleCancelClick = () => {
     setIsEditing(false);
-    setNewFirstName(firstName); 
+    setNewUserName(userName || ''); 
   };
 
   const handleSaveClick = async () => {
-    if (newFirstName.trim() === '') {
-      dispatch(setError('First name cannot be empty.'));
+    if (newUserName.trim() === '') {
+      dispatch(setError('Username cannot be empty.'));
       return;
     }
     setIsSaving(true);
     try {
-      const updatedUserData = await updateUserProfile({ firstName: newFirstName });
-      dispatch(setName({ firstName: newFirstName, lastName: updatedUserData.lastName }));
+      await updateUserProfile({ userName: newUserName }); 
+      dispatch(setUserName(newUserName)); 
       setIsEditing(false);
     } catch (err) {
       console.error('Error updating user profile:', err);
@@ -64,10 +66,6 @@ export default function User() {
     }
   };
 
-  useEffect(() => {
-    console.log('Current user profile:', { firstName, lastName });
-  }, [firstName, lastName]);
-
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -75,15 +73,35 @@ export default function User() {
     <main className="main bg-dark">
       <div className="header">
         {isEditing ? (
-          <div>
+          <div className='edit-form'>
             <h1>Edit user info</h1>
-            <label>First name: </label>
-            <input className="editName"
-              type="text"
-              value={newFirstName}
-              onChange={(e) => setNewFirstName(e.target.value)}
-              placeholder="Enter new name"
-            />
+            <div>
+              <label>User name: </label>
+              <input className="editName"
+                type="text"
+                value={newUserName}
+                onChange={(e) => setNewUserName(e.target.value)} 
+                placeholder="Enter new username"
+              />
+            </div>
+            <div>
+              <label>First name: </label>
+              <input
+                type="text"
+                value={firstName}
+                readOnly
+                className="editName readonlyField"
+              />
+            </div>
+            <div>
+              <label>Last name: </label>
+              <input
+                type="text"
+                value={lastName}
+                readOnly
+                className="editName readonlyField"
+              />
+            </div>
             <div className="buttons">
               <button onClick={handleSaveClick} className="edit-button" disabled={isSaving}>
                 {isSaving ? 'Saving...' : 'Save'}
@@ -93,8 +111,8 @@ export default function User() {
           </div>
         ) : (
           <>
-            <h1>Welcome back<br />{firstName || 'User'}!</h1>
-            <button onClick={handleEditClick} className="edit-button">Edit Name</button>
+            <h1>Welcome back<br />{firstName || 'User'}!</h1> 
+            <button onClick={handleEditClick} className="edit-button">Edit Username</button>
           </>
         )}
       </div>
