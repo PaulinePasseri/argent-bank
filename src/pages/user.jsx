@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setUserProfile, setError, setUserName } from '../features/userSlice'; 
 import { setAuthToken, getUserProfile, updateUserProfile } from '../services/api';
-import Account from "../components/Account/account";
 import { useNavigate } from 'react-router-dom';
+import { AccountsList } from '../components/AccountsList/AccountsList';
+import { EditUserForm } from '../components/EditUserForm/EditUserForm';
 
 export default function User() {
   const dispatch = useDispatch();
@@ -14,41 +15,41 @@ export default function User() {
   const [newUserName, setNewUserName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        setAuthToken(token);
-        try {
-          const userData = await getUserProfile();
-          dispatch(setUserProfile(userData));
-          setNewUserName(userData.userName || ''); 
-        } catch (err) {
-          console.error('Error fetching user profile:', err);
-          dispatch(setError(err.response?.data?.message || 'An error occurred while fetching the user profile'));
-          navigate('/signin');
-        }
-      } else {
+  const fetchProfile = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setAuthToken(token);
+      try {
+        const userData = await getUserProfile();
+        dispatch(setUserProfile(userData));
+        setNewUserName(userData.userName || ''); 
+      } catch (err) {
+        console.error('Error fetching user profile:', err);
+        dispatch(setError(err.response?.data?.message || 'An error occurred while fetching the user profile'));
         navigate('/signin');
       }
-      setLoading(false);
-    };
-  
-    fetchProfile();
+    } else {
+      navigate('/signin');
+    }
+    setLoading(false);
   }, [dispatch, navigate]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   useEffect(() => {
     setNewUserName(userName || ''); 
   }, [userName]);
 
-  const handleEditClick = () => setIsEditing(true);
+  const handleEditClick = useCallback(() => setIsEditing(true), []);
 
-  const handleCancelClick = () => {
+  const handleCancelClick = useCallback(() => {
     setIsEditing(false);
     setNewUserName(userName || ''); 
-  };
+  }, [userName]);
 
-  const handleSaveClick = async () => {
+  const handleSaveClick = useCallback(async () => {
     if (newUserName.trim() === '') {
       dispatch(setError('Username cannot be empty.'));
       return;
@@ -64,7 +65,30 @@ export default function User() {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [newUserName, dispatch]);
+
+  const headerContent = useMemo(() => {
+    if (isEditing) {
+      return (
+        <EditUserForm
+          newUserName={newUserName}
+          firstName={firstName}
+          lastName={lastName}
+          onSave={handleSaveClick}
+          onCancel={handleCancelClick}
+          onChange={(e) => setNewUserName(e.target.value)}
+          isSaving={isSaving}
+        />
+      );
+    } else {
+      return (
+        <>
+          <h1>Welcome back<br />{firstName || 'User'}!</h1> 
+          <button onClick={handleEditClick} className="edit-button">Edit Username</button>
+        </>
+      );
+    }
+  }, [isEditing, newUserName, firstName, lastName, handleSaveClick, handleCancelClick, isSaving, handleEditClick]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -72,66 +96,9 @@ export default function User() {
   return (
     <main className="main bg-dark">
       <div className="header">
-        {isEditing ? (
-          <div className='edit-form'>
-            <h1>Edit user info</h1>
-            <div>
-              <label>User name: </label>
-              <input className="editName"
-                type="text"
-                value={newUserName}
-                onChange={(e) => setNewUserName(e.target.value)} 
-                placeholder="Enter new username"
-              />
-            </div>
-            <div>
-              <label>First name: </label>
-              <input
-                type="text"
-                value={firstName}
-                readOnly
-                className="editName readonlyField"
-              />
-            </div>
-            <div>
-              <label>Last name: </label>
-              <input
-                type="text"
-                value={lastName}
-                readOnly
-                className="editName readonlyField"
-              />
-            </div>
-            <div className="buttons">
-              <button onClick={handleSaveClick} className="edit-button" disabled={isSaving}>
-                {isSaving ? 'Saving...' : 'Save'}
-              </button>
-              <button onClick={handleCancelClick} className="edit-button">Cancel</button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <h1>Welcome back<br />{firstName || 'User'}!</h1> 
-            <button onClick={handleEditClick} className="edit-button">Edit Username</button>
-          </>
-        )}
+        {headerContent}
       </div>
-      <h2 className="sr-only">Accounts</h2>
-      <Account 
-        title="Argent Bank Checking (x8349)"
-        amount="$2,082.79"
-        description="Available Balance"
-      />
-      <Account 
-        title="Argent Bank Savings (x6712)"
-        amount="$10,928.42"
-        description="Available Balance"
-      />
-      <Account 
-        title="Argent Bank Credit Card (x8349)"
-        amount="$184.30"
-        description="Current Balance"
-      />
+      <AccountsList/>
     </main>
   );
 }
