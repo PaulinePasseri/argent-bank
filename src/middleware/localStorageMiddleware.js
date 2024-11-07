@@ -1,7 +1,5 @@
 const localStorageMiddleware = store => next => action => {
     const result = next(action);
-    console.log('Dispatching action:', action.type);
-  
     try {
       switch (action.type) {
         case 'user/setUserProfile':
@@ -9,13 +7,11 @@ const localStorageMiddleware = store => next => action => {
           const { userName } = store.getState().user; 
           if (userName) {
             localStorage.setItem('userName', userName); 
-            console.log('Saved userName to localStorage:', userName);
           }
           break;
         }
         case 'user/resetUser':
           localStorage.removeItem('userName');
-          console.log('Removed user data from localStorage');
           break;
         default:
           break;
