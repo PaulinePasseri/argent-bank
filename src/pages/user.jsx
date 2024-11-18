@@ -24,7 +24,6 @@ export default function User() {
         dispatch(setUserProfile(userData));
         setNewUserName(userData.userName || ''); 
       } catch (err) {
-        console.error('Error fetching user profile:', err);
         dispatch(setError(err.response?.data?.message || 'An error occurred while fetching the user profile'));
         navigate('/signin');
       }
@@ -60,7 +59,6 @@ export default function User() {
       dispatch(setUserName(newUserName)); 
       setIsEditing(false);
     } catch (err) {
-      console.error('Error updating user profile:', err);
       dispatch(setError(err.response?.data?.message || 'Failed to update profile.'));
     } finally {
       setIsSaving(false);

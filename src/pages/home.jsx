@@ -1,7 +1,7 @@
 import React from 'react';
 import Hero from "../components/Hero/hero";
 import Features from "../components/Features/features";
-import '../main.css'; // Assurez-vous que c'est nécessaire, sinon importez uniquement les styles nécessaires
+import '../main.css'; 
 import IconChat from '../assets/icon-chat.webp';
 import IconMoney from '../assets/icon-money.webp';
 import IconSecurity from '../assets/icon-security.webp';
