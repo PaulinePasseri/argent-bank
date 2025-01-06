@@ -81,7 +81,7 @@ export default function User() {
     } else {
       return (
         <>
-          <h1>Welcome back<br />{firstName || 'User'}!</h1> 
+          <h1>Welcome back<br />{newUserName || 'User'}!</h1> 
           <button onClick={handleEditClick} className="edit-button">Edit Username</button>
         </>
       );
