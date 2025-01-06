@@ -2,6 +2,7 @@
   "name": "argent-bank",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://paulinepasseri.github.io/argent-bank",
   "dependencies": {
     "@reduxjs/toolkit": "^2.3.0",
     "@testing-library/jest-dom": "^5.17.0",
@@ -39,5 +40,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
   }
 }
